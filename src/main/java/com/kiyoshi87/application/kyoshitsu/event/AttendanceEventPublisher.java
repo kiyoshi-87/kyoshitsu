@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AttendanceEventPublisher {
 
-    private final SimpMessagingTemplate messagingTemplate; // + What is this??
+    private final SimpMessagingTemplate messagingTemplate;
 
     private static final String DESTINATION_PATH = "/topic/attendance/";
 
