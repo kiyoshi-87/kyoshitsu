@@ -1,5 +1,6 @@
 package com.kiyoshi87.application.kyoshitsu.service;
 
+import com.kiyoshi87.application.kyoshitsu.event.AttendanceEventPublisher;
 import com.kiyoshi87.application.kyoshitsu.exceptions.ApiException;
 import com.kiyoshi87.application.kyoshitsu.model.ApiResponse;
 import com.kiyoshi87.application.kyoshitsu.model.entity.AttendanceRecord;
@@ -25,6 +26,7 @@ public class ClassSessionService {
     private final ClassroomRepository classroomRepository;
     private final ClassSessionRepository classSessionRepository;
     private final AttendanceRecordRepository attendanceRecordRepository;
+    private final AttendanceEventPublisher eventPublisher;
 
     public ApiResponse<ClassSessionResponse> startSession(String classId, Authentication authentication) {
         UserEntity teacher = fetchUser(authentication);
@@ -40,7 +42,7 @@ public class ClassSessionService {
 
         ClassSession sessionEntity = buildAndSaveSessionEntity(classId, false);
 
-        // TODO: Start websocket session right here ----
+        eventPublisher.publishSessionStarted(classId, sessionEntity.getId());
 
         return ApiResponse.success(ClassSessionResponse.builder()
                 .classId(classId)
@@ -51,11 +53,13 @@ public class ClassSessionService {
 
     public ApiResponse<AttendanceMarkedResponse> markAttendance(String classId, Authentication authentication) {
         UserEntity student = fetchUser(authentication);
-        validateAndSaveAttendance(classId, student);
+        String sessionId = validateAndSaveAttendance(classId, student);
 
         AttendanceMarkedResponse response = AttendanceMarkedResponse.builder()
                 .classId(classId)
                 .build();
+
+        eventPublisher.publishAttendanceMarked(classId, sessionId, student.getId());
 
         return ApiResponse.success(response);
     }
@@ -67,9 +71,9 @@ public class ClassSessionService {
         validateClassAndPermission(classId, teacher);
         validateSessionIsActive(classId);
 
-        // TODO: Stop websocket session right here ----
-
         ClassSession sessionEntity = buildAndSaveSessionEntity(classId, true);
+
+        eventPublisher.publishSessionEnded(classId, sessionEntity.getId());
 
         return ApiResponse.success(ClassSessionResponse.builder()
                 .classId(classId)
@@ -107,13 +111,20 @@ public class ClassSessionService {
         return classSessionRepository.save(sessionEntity);
     }
 
-    private void validateAndSaveAttendance(String classId, UserEntity student) {
+    private String validateAndSaveAttendance(String classId, UserEntity student) {
         ClassSession classSession = classSessionRepository
                 .findByClassIdAndActiveTrue(classId)
                 .orElse(null);
 
         if (classSession == null) {
             throw new ApiException("Class is not active. Attendance not marked");
+        }
+
+        boolean alreadyMarked = attendanceRecordRepository
+                .existsBySessionIdAndStudentId(classSession.getId(), student.getId());
+
+        if (alreadyMarked) {
+            throw new ApiException("Attendance already marked for this session");
         }
 
         AttendanceRecord attendanceRecord = AttendanceRecord.builder()
@@ -124,6 +135,8 @@ public class ClassSessionService {
                 .build();
 
         attendanceRecordRepository.save(attendanceRecord);
+
+        return classSession.getId();
     }
 
     private void validateSessionIsActive(String classId) {

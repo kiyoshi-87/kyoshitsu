@@ -1,5 +1,6 @@
 package com.kiyoshi87.application.kyoshitsu.service;
 
+import com.kiyoshi87.application.kyoshitsu.event.AttendanceEventPublisher;
 import com.kiyoshi87.application.kyoshitsu.exceptions.ApiException;
 import com.kiyoshi87.application.kyoshitsu.model.ApiResponse;
 import com.kiyoshi87.application.kyoshitsu.model.Role;
@@ -46,6 +47,9 @@ class ClassSessionServiceTest {
     @Mock
     private AttendanceRecordRepository attendanceRecordRepository;
 
+    @Mock
+    private AttendanceEventPublisher eventPublisher;
+
     @InjectMocks
     private ClassSessionService classSessionService;
 
@@ -74,6 +78,7 @@ class ClassSessionServiceTest {
         assertTrue(captor.getValue().isActive());
         assertNotNull(captor.getValue().getStartTime());
         assertNull(captor.getValue().getEndTime());
+        verify(eventPublisher).publishSessionStarted("class-1", "session-1");
     }
 
     @Test
@@ -85,6 +90,7 @@ class ClassSessionServiceTest {
 
         assertEquals("Invalid class ID or you do not have permission to start or end the session", exception.getMessage());
         verify(classSessionRepository, never()).save(any(ClassSession.class));
+        verify(eventPublisher, never()).publishSessionStarted(any(), any());
     }
 
     @Test
@@ -97,6 +103,7 @@ class ClassSessionServiceTest {
 
         assertEquals("A session for this class is already active. Please end the current session before starting a new one", exception.getMessage());
         verify(classSessionRepository, never()).save(any(ClassSession.class));
+        verify(eventPublisher, never()).publishSessionStarted(any(), any());
     }
 
     @Test
@@ -109,6 +116,7 @@ class ClassSessionServiceTest {
                 .build();
 
         when(classSessionRepository.findByClassIdAndActiveTrue("class-1")).thenReturn(Optional.of(session));
+        when(attendanceRecordRepository.existsBySessionIdAndStudentId("session-1", "student-1")).thenReturn(false);
 
         ApiResponse<AttendanceMarkedResponse> response =
                 classSessionService.markAttendance("class-1", authenticationFor(student));
@@ -122,6 +130,7 @@ class ClassSessionServiceTest {
         assertEquals("session-1", captor.getValue().getSessionId());
         assertEquals("student-1", captor.getValue().getStudentId());
         assertNotNull(captor.getValue().getTimestamp());
+        verify(eventPublisher).publishAttendanceMarked("class-1", "session-1", "student-1");
     }
 
     @Test
@@ -133,6 +142,27 @@ class ClassSessionServiceTest {
 
         assertEquals("Class is not active. Attendance not marked", exception.getMessage());
         verify(attendanceRecordRepository, never()).save(any(AttendanceRecord.class));
+        verify(eventPublisher, never()).publishAttendanceMarked(any(), any(), any());
+    }
+
+    @Test
+    void markAttendanceShouldThrowWhenAttendanceAlreadyMarked() {
+        UserEntity student = user("student-1", Role.STUDENT);
+        ClassSession session = ClassSession.builder()
+                .id("session-1")
+                .classId("class-1")
+                .active(true)
+                .build();
+
+        when(classSessionRepository.findByClassIdAndActiveTrue("class-1")).thenReturn(Optional.of(session));
+        when(attendanceRecordRepository.existsBySessionIdAndStudentId("session-1", "student-1")).thenReturn(true);
+
+        ApiException exception = assertThrows(ApiException.class,
+                () -> classSessionService.markAttendance("class-1", authenticationFor(student)));
+
+        assertEquals("Attendance already marked for this session", exception.getMessage());
+        verify(attendanceRecordRepository, never()).save(any(AttendanceRecord.class));
+        verify(eventPublisher, never()).publishAttendanceMarked(any(), any(), any());
     }
 
     @Test
@@ -159,6 +189,7 @@ class ClassSessionServiceTest {
         verify(classSessionRepository).save(captor.capture());
         assertFalse(captor.getValue().isActive());
         assertNotNull(captor.getValue().getEndTime());
+        verify(eventPublisher).publishSessionEnded("class-1", "session-1");
     }
 
     @Test
@@ -171,6 +202,7 @@ class ClassSessionServiceTest {
 
         assertEquals("Class session is not active. Cannot end session", exception.getMessage());
         verify(classSessionRepository, never()).save(any(ClassSession.class));
+        verify(eventPublisher, never()).publishSessionEnded(any(), any());
     }
 
     private static Authentication authenticationFor(UserEntity user) {

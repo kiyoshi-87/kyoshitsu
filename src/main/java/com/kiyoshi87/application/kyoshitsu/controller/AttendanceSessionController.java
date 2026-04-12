@@ -1,7 +1,6 @@
 package com.kiyoshi87.application.kyoshitsu.controller;
 
 import com.kiyoshi87.application.kyoshitsu.model.ApiResponse;
-import com.kiyoshi87.application.kyoshitsu.model.response.AttendanceMarkedResponse;
 import com.kiyoshi87.application.kyoshitsu.model.response.ClassSessionResponse;
 import com.kiyoshi87.application.kyoshitsu.service.ClassSessionService;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +22,6 @@ public class AttendanceSessionController {
     @PostMapping("/start")
     public ApiResponse<ClassSessionResponse> startSession(@RequestParam String classId, Authentication authentication) {
         return service.startSession(classId, authentication);
-    }
-
-    @PreAuthorize("hasRole('STUDENT')")
-    @PostMapping("/mark")
-    public ApiResponse<AttendanceMarkedResponse> markAttendance(@RequestParam String classId, Authentication authentication) {
-        return service.markAttendance(classId, authentication);
     }
 
     @PreAuthorize("hasRole('TEACHER')")
