@@ -7,5 +7,5 @@ public interface ClassroomRepository extends MongoRepository<ClassEntity, String
 
     boolean existsByName(String name);
 
-    boolean existsByClassIdAndTeacherId(String classId, String teacherId);
+    boolean existsByIdAndTeacherId(String id, String teacherId);
 }

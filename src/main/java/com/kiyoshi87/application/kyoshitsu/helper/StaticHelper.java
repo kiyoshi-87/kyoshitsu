@@ -10,6 +10,7 @@ public class StaticHelper {
 
     public static UserDto toUserDto(UserEntity user) {
         return com.kiyoshi87.application.kyoshitsu.model.common.UserDto.builder()
+                .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole().getName())

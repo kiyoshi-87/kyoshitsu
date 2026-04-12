@@ -32,7 +32,13 @@ public class ClassSessionService {
         // Check if the classId is valid and the teacher has permission to start the session
         validateClassAndPermission(classId, teacher);
 
-        ClassSession sessionEntity = buildSessionEntity(classId, false);
+        boolean isSessionActive = classSessionRepository.existsByClassIdAndActiveTrue(classId);
+
+        if (isSessionActive) {
+            throw new ApiException("A session for this class is already active. Please end the current session before starting a new one");
+        }
+
+        ClassSession sessionEntity = buildAndSaveSessionEntity(classId, false);
 
         // TODO: Start websocket session right here ----
 
@@ -63,7 +69,7 @@ public class ClassSessionService {
 
         // TODO: Stop websocket session right here ----
 
-        ClassSession sessionEntity = buildSessionEntity(classId, true);
+        ClassSession sessionEntity = buildAndSaveSessionEntity(classId, true);
 
         return ApiResponse.success(ClassSessionResponse.builder()
                 .classId(classId)
@@ -73,27 +79,29 @@ public class ClassSessionService {
     }
 
     private void validateClassAndPermission(String classId, UserEntity teacher) {
-        boolean isValidClass = classroomRepository.existsByClassIdAndTeacherId(classId, teacher.getId());
+        boolean isValidClass = classroomRepository.existsByIdAndTeacherId(classId, teacher.getId());
 
         if (!isValidClass) {
-            throw new ApiException("Invalid class ID or you do not have permission to start the session");
+            throw new ApiException("Invalid class ID or you do not have permission to start or end the session");
         }
     }
 
-    private ClassSession buildSessionEntity(String classId, boolean isEnd) {
+    private ClassSession buildAndSaveSessionEntity(String classId, boolean isEnd) {
         ClassSession sessionEntity;
 
         if (!isEnd) {
             sessionEntity = ClassSession.builder()
                     .classId(classId)
                     .startTime(Instant.now()) // Set start time when the session actually starts
+                    .active(true)
                     .endTime(null) // Set end time when the session ends
                     .build();
         } else {
-           sessionEntity = classSessionRepository
+            sessionEntity = classSessionRepository
                     .findByClassIdAndActiveTrue(classId)
                     .orElseThrow(() -> new ApiException("Class session is not active. Cannot end session"));
 
+            sessionEntity.setActive(false);
             sessionEntity.setEndTime(Instant.now()); // Set end time when the session ends
         }
         return classSessionRepository.save(sessionEntity);
