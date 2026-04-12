@@ -61,7 +61,6 @@ public class ClassroomService {
         UserEntity teacher = fetchUser(authentication);
 
         ClassEntity classroomEntity = fetchAndValidateClassroom(request, teacher);
-
         List<String> validStudentIds = fetchAndValidateStudents(request);
 
         List<String> existingStudents = classroomEntity.getStudentIds();
@@ -89,7 +88,6 @@ public class ClassroomService {
                 .orElseThrow(() -> new ApiException("Class not found"));
 
         UserEntity user = fetchUser(authentication);
-
         validateUserHasAccess(user, classEntity);
 
         List<UserEntity> studentEntities =
@@ -132,7 +130,7 @@ public class ClassroomService {
     }
 
     // + Might be extracted to a separate component if the usage increases
-    private UserEntity fetchUser(Authentication authentication) {
+    protected static UserEntity fetchUser(Authentication authentication) {
         CustomUserDetails userDetails =
                 (CustomUserDetails) authentication.getPrincipal();
 

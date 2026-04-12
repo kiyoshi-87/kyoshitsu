@@ -8,6 +8,7 @@ class KyoshitsuApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// Check context are loaded successfully
 	}
 
 }
