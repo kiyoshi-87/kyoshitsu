@@ -1,6 +1,6 @@
 # Kyoshitsu
 
-Kyoshitsu is a Spring Boot backend for classroom management and real-time attendance tracking. It supports teacher and student accounts, JWT-based authentication, classroom creation and enrollment, and live attendance updates over WebSocket using STOMP + SockJS.
+Kyoshitsu is a Spring Boot backend for classroom management and real-time attendance tracking. It supports teacher and student accounts, JWT-based authentication, classroom creation and enrollment, and live attendance updates over WebSocket using STOMP and SockJS.
 
 ## Features
 
@@ -58,7 +58,7 @@ In the current functional flow, the main supported roles are `teacher` and `stud
 
 ### Start MongoDB
 
-The repository includes a [compose.yaml](/C:/github_projects/kyoshitsu/compose.yaml) file with MongoDB and Mongo Express.
+The repository includes a `compose.yaml` file with MongoDB and Mongo Express.
 
 Run:
 
@@ -90,7 +90,7 @@ Or with Maven installed:
 mvn spring-boot:run
 ```
 
-By default, the app uses the MongoDB connection configured in [application.yaml](/C:/github_projects/kyoshitsu/src/main/resources/application.yaml:1).
+By default, the application uses the MongoDB connection configured in `src/main/resources/application.yaml`.
 
 ## Authentication
 
@@ -128,10 +128,10 @@ On failure:
 
 ## REST API
 
-Base URL:
+Default base URL:
 
 ```text
-http://localhost:8080 (or whatever port configured in application.yml)
+http://localhost:8080
 ```
 
 ### Auth Endpoints
@@ -140,7 +140,7 @@ http://localhost:8080 (or whatever port configured in application.yml)
 
 Creates a new user account.
 
-Auth required: `No`
+Authentication required: `No`
 
 Request body:
 
@@ -176,7 +176,7 @@ Success response:
 
 Authenticates a user and returns a JWT.
 
-Auth required: `No`
+Authentication required: `No`
 
 Request body:
 
@@ -202,7 +202,7 @@ Success response:
 
 Returns the currently authenticated user.
 
-Auth required: `Yes`
+Authentication required: `Yes`
 
 Allowed roles:
 
@@ -230,7 +230,7 @@ Success response:
 
 Creates a new classroom for the authenticated teacher.
 
-Auth required: `Yes`
+Authentication required: `Yes`
 
 Allowed roles:
 
@@ -261,7 +261,7 @@ Success response:
 
 Adds students to an existing classroom.
 
-Auth required: `Yes`
+Authentication required: `Yes`
 
 Allowed roles:
 
@@ -289,7 +289,7 @@ Behavior:
 
 Returns classroom details.
 
-Auth required: `Yes`
+Authentication required: `Yes`
 
 Allowed roles:
 
@@ -328,7 +328,7 @@ Success response:
 
 Returns all registered student users.
 
-Auth required: `Yes`
+Authentication required: `Yes`
 
 Allowed roles:
 
@@ -336,7 +336,7 @@ Allowed roles:
 
 Use case:
 
-- populate student selection UI before assigning students to a class
+- Populate the student selection UI before assigning students to a class
 
 ### Attendance Session Endpoints
 
@@ -344,7 +344,7 @@ Use case:
 
 Starts an attendance session for a classroom.
 
-Auth required: `Yes`
+Authentication required: `Yes`
 
 Allowed roles:
 
@@ -352,10 +352,10 @@ Allowed roles:
 
 Behavior:
 
-- validates that the teacher owns the class
-- prevents starting a new session if one is already active
-- creates an active session
-- broadcasts a WebSocket event to `/topic/attendance/{classId}`
+- Validates that the teacher owns the class
+- Prevents starting a new session if one is already active
+- Creates an active session
+- Broadcasts a WebSocket event to `/topic/attendance/{classId}`
 
 Success response:
 
@@ -374,7 +374,7 @@ Success response:
 
 Ends the currently active attendance session for a classroom.
 
-Auth required: `Yes`
+Authentication required: `Yes`
 
 Allowed roles:
 
@@ -382,15 +382,15 @@ Allowed roles:
 
 Behavior:
 
-- validates that the teacher owns the class
-- validates that a session is active
-- marks the session inactive
-- sets `endTime`
-- broadcasts a WebSocket event to `/topic/attendance/{classId}`
+- Validates that the teacher owns the class
+- Validates that a session is active
+- Marks the session inactive
+- Sets `endTime`
+- Broadcasts a WebSocket event to `/topic/attendance/{classId}`
 
 ## WebSocket API
 
-Kyoshitsu uses STOMP over WebSocket with SockJS support for live attendance.
+Kyoshitsu uses STOMP over WebSocket with SockJS support for live attendance updates.
 
 ### Connection Endpoint
 
@@ -422,7 +422,7 @@ Subscribe students and teachers to:
 
 This topic receives real-time attendance events for a specific class.
 
-### Client Send Endpoint
+### Client Send Destination
 
 Students send attendance marks to:
 
@@ -585,16 +585,16 @@ Run the application tests only:
 mvn -Dtest=KyoshitsuApplicationTests test
 ```
 
-## Current Notes
+## Implementation Notes
 
-- JWT secret is currently hardcoded in [JwtUtil.java](/C:/github_projects/kyoshitsu/src/main/java/com/kiyoshi87/application/kyoshitsu/auth/JwtUtil.java:13) and should be externalized before production use.
-- WebSocket allowed origins are configurable in [WebSocketConfig.java](/C:/github_projects/kyoshitsu/src/main/java/com/kiyoshi87/application/kyoshitsu/config/WebSocketConfig.java:13).
+- JWT secret is currently hardcoded in `src/main/java/com/kiyoshi87/application/kyoshitsu/auth/JwtUtil.java` and should be externalized before production use.
+- WebSocket allowed origins are configurable in `src/main/java/com/kiyoshi87/application/kyoshitsu/config/WebSocketConfig.java`.
 - The project currently uses MongoDB from Docker Compose by default.
 
 ## Future Improvements
 
-- externalize JWT secret and database settings to environment variables
-- add Swagger/OpenAPI documentation
-- add dedicated WebSocket authentication handshake support if the frontend requires token-based socket auth
-- add integration tests for WebSocket message flow
-- add attendance history and reporting endpoints
+- Externalize JWT secret and database settings to environment variables
+- Add Swagger/OpenAPI documentation
+- Add dedicated WebSocket authentication handshake support if the frontend requires token-based socket authentication
+- Add integration tests for WebSocket message flow
+- Add attendance history and reporting endpoints
