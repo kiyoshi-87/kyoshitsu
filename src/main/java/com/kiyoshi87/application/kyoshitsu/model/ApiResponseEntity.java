@@ -15,6 +15,8 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponseEntity<T> {
 
+    private static final String DEFAULT_ERROR_MESSAGE = "Unexpected error";
+
     private boolean success;
     private T data;
     private List<String> error;
@@ -29,14 +31,14 @@ public class ApiResponseEntity<T> {
     public static ApiResponseEntity<?> error(String message) {
         return ApiResponseEntity.builder()
                 .success(false)
-                .error(List.of(message))
+                .error(List.of(message == null ? DEFAULT_ERROR_MESSAGE : message))
                 .build();
     }
 
     public static ApiResponseEntity<?> error(List<String> messages) {
         return ApiResponseEntity.builder()
                 .success(false)
-                .error(messages)
+                .error(messages == null ? List.of(DEFAULT_ERROR_MESSAGE) : messages)
                 .build();
     }
 }
