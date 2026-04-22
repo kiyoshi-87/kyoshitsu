@@ -2,7 +2,7 @@ package com.kiyoshi87.application.kyoshitsu.service;
 
 import com.kiyoshi87.application.kyoshitsu.auth.JwtUtil;
 import com.kiyoshi87.application.kyoshitsu.exceptions.ApiException;
-import com.kiyoshi87.application.kyoshitsu.model.ApiResponse;
+import com.kiyoshi87.application.kyoshitsu.model.ApiResponseEntity;
 import com.kiyoshi87.application.kyoshitsu.model.Role;
 import com.kiyoshi87.application.kyoshitsu.model.auth.LoginRequest;
 import com.kiyoshi87.application.kyoshitsu.model.auth.LoginResponse;
@@ -30,7 +30,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public ApiResponse<SignUpResponse> signup(SignupRequest request) {
+    public ApiResponseEntity<SignUpResponse> signup(SignupRequest request) {
         try {
             if(userRepository.existsByEmail(request.getEmail())) {
                 throw new ApiException("Email already exists");
@@ -45,14 +45,14 @@ public class AuthService {
 
             userRepository.save(user);
 
-            return ApiResponse.success(toSignupResponse(user));
+            return ApiResponseEntity.success(toSignupResponse(user));
         } catch (MongoException e) {
             log.error("Error with MongoDB while signup: {}", e.getMessage());
             throw new ApiException(e);
         }
     }
 
-    public ApiResponse<LoginResponse> login(LoginRequest request) {
+    public ApiResponseEntity<LoginResponse> login(LoginRequest request) {
         try {
             UserEntity user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new ApiException("User not found"));
@@ -65,7 +65,7 @@ public class AuthService {
 
             log.info("User {} logged in", user.getEmail());
 
-            return ApiResponse.success(LoginResponse.builder()
+            return ApiResponseEntity.success(LoginResponse.builder()
                     .token(token)
                     .build());
         } catch (MongoException e) {
@@ -74,14 +74,14 @@ public class AuthService {
         }
     }
 
-    public ApiResponse<UserDto> getUser(Authentication authentication) {
+    public ApiResponseEntity<UserDto> getUser(Authentication authentication) {
         try {
             String email = authentication.getName();
 
             UserEntity user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new ApiException("User not found"));
 
-            return ApiResponse.success(toUserDto(user));
+            return ApiResponseEntity.success(toUserDto(user));
         } catch (MongoException e) {
             log.error("Error with MongoDB while getting user: {}", e.getMessage());
             throw new ApiException(e);

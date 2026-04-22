@@ -1,7 +1,7 @@
 package com.kiyoshi87.application.kyoshitsu.service;
 
 import com.kiyoshi87.application.kyoshitsu.exceptions.ApiException;
-import com.kiyoshi87.application.kyoshitsu.model.ApiResponse;
+import com.kiyoshi87.application.kyoshitsu.model.ApiResponseEntity;
 import com.kiyoshi87.application.kyoshitsu.model.Role;
 import com.kiyoshi87.application.kyoshitsu.model.auth.CustomUserDetails;
 import com.kiyoshi87.application.kyoshitsu.model.common.UserDto;
@@ -58,7 +58,7 @@ class ClassroomServiceTest {
             return saved;
         });
 
-        ApiResponse<ClassResponse> response = classroomService.createClassroom("Physics", authentication);
+        ApiResponseEntity<ClassResponse> response = classroomService.createClassroom("Physics", authentication);
 
         assertTrue(response.isSuccess());
         assertNotNull(response.getData());
@@ -108,7 +108,7 @@ class ClassroomServiceTest {
         ));
         when(classroomRepository.save(any(ClassEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ApiResponse<ClassResponse> response = classroomService.addStudents(request, authenticationFor(teacher));
+        ApiResponseEntity<ClassResponse> response = classroomService.addStudents(request, authenticationFor(teacher));
 
         assertTrue(response.isSuccess());
         assertEquals(List.of("student-1", "student-2"), response.getData().getStudentIds());
@@ -182,7 +182,7 @@ class ClassroomServiceTest {
                 user("student-2", "student2@example.com", Role.STUDENT)
         ));
 
-        ApiResponse<ClassDetailResponse> response = classroomService.getClassroom("class-1", authenticationFor(student));
+        ApiResponseEntity<ClassDetailResponse> response = classroomService.getClassroom("class-1", authenticationFor(student));
 
         assertTrue(response.isSuccess());
         assertEquals("class-1", response.getData().getClassId());
@@ -218,7 +218,7 @@ class ClassroomServiceTest {
                 user("student-2", "student2@example.com", Role.STUDENT)
         ));
 
-        ApiResponse<List<UserDto>> response = classroomService.getAllStudents(authenticationFor(teacher));
+        ApiResponseEntity<List<UserDto>> response = classroomService.getAllStudents(authenticationFor(teacher));
 
         assertTrue(response.isSuccess());
         assertEquals(2, response.getData().size());
@@ -230,7 +230,7 @@ class ClassroomServiceTest {
         UserEntity teacher = user("teacher-1", "teacher@example.com", Role.TEACHER);
         when(userRepository.findAllByRole(Role.STUDENT)).thenReturn(List.of());
 
-        ApiResponse<List<UserDto>> response = classroomService.getAllStudents(authenticationFor(teacher));
+        ApiResponseEntity<List<UserDto>> response = classroomService.getAllStudents(authenticationFor(teacher));
 
         assertTrue(response.isSuccess());
         assertNotNull(response.getData());
