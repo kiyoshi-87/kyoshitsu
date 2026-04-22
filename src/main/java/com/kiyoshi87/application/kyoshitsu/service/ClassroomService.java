@@ -2,7 +2,7 @@ package com.kiyoshi87.application.kyoshitsu.service;
 
 import com.kiyoshi87.application.kyoshitsu.exceptions.ApiException;
 import com.kiyoshi87.application.kyoshitsu.helper.StaticHelper;
-import com.kiyoshi87.application.kyoshitsu.model.ApiResponse;
+import com.kiyoshi87.application.kyoshitsu.model.ApiResponseEntity;
 import com.kiyoshi87.application.kyoshitsu.model.Role;
 import com.kiyoshi87.application.kyoshitsu.model.auth.CustomUserDetails;
 import com.kiyoshi87.application.kyoshitsu.model.common.UserDto;
@@ -30,8 +30,8 @@ public class ClassroomService {
     private final ClassroomRepository repository;
     private final UserRepository userRepository;
 
-    public ApiResponse<ClassResponse> createClassroom(String className,
-                                                      Authentication authentication) {
+    public ApiResponseEntity<ClassResponse> createClassroom(String className,
+                                                            Authentication authentication) {
 
         if (repository.existsByName(className)) {
             throw new ApiException("Class with this name already exists");
@@ -47,7 +47,7 @@ public class ClassroomService {
 
         classEntity = repository.save(classEntity);
 
-        return ApiResponse.success(ClassResponse.builder()
+        return ApiResponseEntity.success(ClassResponse.builder()
                         .classId(classEntity.getId())
                 .className(className)
                 .teacherId(teacher.getId())
@@ -55,8 +55,8 @@ public class ClassroomService {
                 .build());
     }
 
-    public ApiResponse<ClassResponse> addStudents(AddStudentsRequest request,
-                                                  Authentication authentication) {
+    public ApiResponseEntity<ClassResponse> addStudents(AddStudentsRequest request,
+                                                        Authentication authentication) {
 
         UserEntity teacher = fetchUser(authentication);
 
@@ -75,7 +75,7 @@ public class ClassroomService {
 
         repository.save(classroomEntity);
 
-        return ApiResponse.success(ClassResponse.builder()
+        return ApiResponseEntity.success(ClassResponse.builder()
                 .classId(classroomEntity.getId())
                 .className(classroomEntity.getName())
                 .teacherId(classroomEntity.getTeacherId())
@@ -83,7 +83,7 @@ public class ClassroomService {
                 .build());
     }
 
-    public ApiResponse<ClassDetailResponse> getClassroom(String id, Authentication authentication) {
+    public ApiResponseEntity<ClassDetailResponse> getClassroom(String id, Authentication authentication) {
         ClassEntity classEntity = repository.findById(id)
                 .orElseThrow(() -> new ApiException("Class not found"));
 
@@ -105,10 +105,10 @@ public class ClassroomService {
                 .students(students)
                 .build();
 
-        return ApiResponse.success(response);
+        return ApiResponseEntity.success(response);
     }
 
-    public ApiResponse<List<UserDto>> getAllStudents(Authentication authentication) {
+    public ApiResponseEntity<List<UserDto>> getAllStudents(Authentication authentication) {
         UserEntity user = fetchUser(authentication);
 
         if (user.getRole() != Role.TEACHER) {
@@ -118,7 +118,7 @@ public class ClassroomService {
         List<UserEntity> studentEntities = userRepository.findAllByRole(Role.STUDENT);
 
         if (CollectionUtils.isEmpty(studentEntities)) {
-            return ApiResponse.success(List.of());
+            return ApiResponseEntity.success(List.of());
         }
 
         List<UserDto> students = studentEntities
@@ -126,7 +126,7 @@ public class ClassroomService {
                 .map(StaticHelper::toUserDto)
                 .toList();
 
-        return ApiResponse.success(students);
+        return ApiResponseEntity.success(students);
     }
 
     // + Might be extracted to a separate component if the usage increases

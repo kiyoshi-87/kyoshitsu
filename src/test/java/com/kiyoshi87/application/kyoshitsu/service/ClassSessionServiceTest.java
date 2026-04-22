@@ -2,7 +2,7 @@ package com.kiyoshi87.application.kyoshitsu.service;
 
 import com.kiyoshi87.application.kyoshitsu.event.AttendanceEventPublisher;
 import com.kiyoshi87.application.kyoshitsu.exceptions.ApiException;
-import com.kiyoshi87.application.kyoshitsu.model.ApiResponse;
+import com.kiyoshi87.application.kyoshitsu.model.ApiResponseEntity;
 import com.kiyoshi87.application.kyoshitsu.model.Role;
 import com.kiyoshi87.application.kyoshitsu.model.auth.CustomUserDetails;
 import com.kiyoshi87.application.kyoshitsu.model.entity.AttendanceRecord;
@@ -65,7 +65,7 @@ class ClassSessionServiceTest {
             return session;
         });
 
-        ApiResponse<ClassSessionResponse> response = classSessionService.startSession("class-1", authenticationFor(teacher));
+        ApiResponseEntity<ClassSessionResponse> response = classSessionService.startSession("class-1", authenticationFor(teacher));
 
         assertTrue(response.isSuccess());
         assertEquals("class-1", response.getData().getClassId());
@@ -118,7 +118,7 @@ class ClassSessionServiceTest {
         when(classSessionRepository.findByClassIdAndActiveTrue("class-1")).thenReturn(Optional.of(session));
         when(attendanceRecordRepository.existsBySessionIdAndStudentId("session-1", "student-1")).thenReturn(false);
 
-        ApiResponse<AttendanceMarkedResponse> response =
+        ApiResponseEntity<AttendanceMarkedResponse> response =
                 classSessionService.markAttendance("class-1", authenticationFor(student));
 
         assertTrue(response.isSuccess());
@@ -179,7 +179,7 @@ class ClassSessionServiceTest {
         when(classSessionRepository.findByClassIdAndActiveTrue("class-1")).thenReturn(Optional.of(activeSession));
         when(classSessionRepository.save(any(ClassSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ApiResponse<ClassSessionResponse> response = classSessionService.endSession("class-1", authenticationFor(teacher));
+        ApiResponseEntity<ClassSessionResponse> response = classSessionService.endSession("class-1", authenticationFor(teacher));
 
         assertTrue(response.isSuccess());
         assertEquals("class-1", response.getData().getClassId());

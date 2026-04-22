@@ -2,7 +2,7 @@ package com.kiyoshi87.application.kyoshitsu.service;
 
 import com.kiyoshi87.application.kyoshitsu.event.AttendanceEventPublisher;
 import com.kiyoshi87.application.kyoshitsu.exceptions.ApiException;
-import com.kiyoshi87.application.kyoshitsu.model.ApiResponse;
+import com.kiyoshi87.application.kyoshitsu.model.ApiResponseEntity;
 import com.kiyoshi87.application.kyoshitsu.model.entity.AttendanceRecord;
 import com.kiyoshi87.application.kyoshitsu.model.entity.ClassSession;
 import com.kiyoshi87.application.kyoshitsu.model.entity.UserEntity;
@@ -28,7 +28,7 @@ public class ClassSessionService {
     private final AttendanceRecordRepository attendanceRecordRepository;
     private final AttendanceEventPublisher eventPublisher;
 
-    public ApiResponse<ClassSessionResponse> startSession(String classId, Authentication authentication) {
+    public ApiResponseEntity<ClassSessionResponse> startSession(String classId, Authentication authentication) {
         UserEntity teacher = fetchUser(authentication);
 
         // Check if the classId is valid and the teacher has permission to start the session
@@ -44,14 +44,14 @@ public class ClassSessionService {
 
         eventPublisher.publishSessionStarted(classId, sessionEntity.getId());
 
-        return ApiResponse.success(ClassSessionResponse.builder()
+        return ApiResponseEntity.success(ClassSessionResponse.builder()
                 .classId(classId)
                 .startTime(sessionEntity.getStartTime())
                 .endTime(sessionEntity.getEndTime())
                 .build());
     }
 
-    public ApiResponse<AttendanceMarkedResponse> markAttendance(String classId, Authentication authentication) {
+    public ApiResponseEntity<AttendanceMarkedResponse> markAttendance(String classId, Authentication authentication) {
         UserEntity student = fetchUser(authentication);
         String sessionId = validateAndSaveAttendance(classId, student);
 
@@ -61,10 +61,10 @@ public class ClassSessionService {
 
         eventPublisher.publishAttendanceMarked(classId, sessionId, student.getId());
 
-        return ApiResponse.success(response);
+        return ApiResponseEntity.success(response);
     }
 
-    public ApiResponse<ClassSessionResponse> endSession(String classId, Authentication authentication) {
+    public ApiResponseEntity<ClassSessionResponse> endSession(String classId, Authentication authentication) {
         UserEntity teacher = fetchUser(authentication);
 
         // Check if the classId is valid and the teacher has permission to end the session
@@ -75,7 +75,7 @@ public class ClassSessionService {
 
         eventPublisher.publishSessionEnded(classId, sessionEntity.getId());
 
-        return ApiResponse.success(ClassSessionResponse.builder()
+        return ApiResponseEntity.success(ClassSessionResponse.builder()
                 .classId(classId)
                 .startTime(sessionEntity.getStartTime())
                 .endTime(sessionEntity.getEndTime())
