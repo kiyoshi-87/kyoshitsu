@@ -129,6 +129,26 @@ public class ClassroomService {
         return ApiResponseEntity.success(students);
     }
 
+
+    public ApiResponseEntity<List<ClassResponse>> getAllClassrooms(Authentication authentication) {
+        UserEntity user = fetchUser(authentication);
+
+        if (user.getRole() != Role.TEACHER) {
+            throw new ApiException("You are not authorized to view this list");
+        }
+
+        List<ClassEntity> classes = repository.findAllByTeacherId(user.getId())
+                .orElse(null);
+
+        if (CollectionUtils.isEmpty(classes)) {
+            return ApiResponseEntity.success(List.of());
+        }
+
+        List<ClassResponse> classResponses = buildClassResponseFromList(classes);
+
+        return ApiResponseEntity.success(classResponses);
+    }
+
     // + Might be extracted to a separate component if the usage increases
     protected static UserEntity fetchUser(Authentication authentication) {
         CustomUserDetails userDetails =
@@ -191,5 +211,21 @@ public class ClassroomService {
         if (!isTeacherOwner && !isEnrolledStudent) {
             throw new ApiException("You are not authorized to view this class");
         }
+    }
+
+    private List<ClassResponse> buildClassResponseFromList(List<ClassEntity> classes) {
+        List<ClassResponse> classResponses = new ArrayList<>();
+
+        for (ClassEntity classEntity : classes) {
+            ClassResponse response = ClassResponse.builder()
+                    .classId(classEntity.getId())
+                    .className(classEntity.getName())
+                    .teacherId(classEntity.getTeacherId())
+                    .studentIds(classEntity.getStudentIds())
+                    .build();
+            classResponses.add(response);
+        }
+
+        return classResponses;
     }
 }

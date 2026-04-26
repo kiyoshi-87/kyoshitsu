@@ -1,9 +1,15 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: kyoshitsu
   data:
     mongodb:
       uri: mongodb://admin:admin@mongo:27017/kyoshitsu_db
+
+app:
+  cors:
+    allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173}
 
 logging:
   level:
