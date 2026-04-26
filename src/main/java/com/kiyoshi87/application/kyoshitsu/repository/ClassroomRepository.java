@@ -4,7 +4,6 @@ import com.kiyoshi87.application.kyoshitsu.model.entity.ClassEntity;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ClassroomRepository extends MongoRepository<ClassEntity, String> {
 
@@ -12,5 +11,5 @@ public interface ClassroomRepository extends MongoRepository<ClassEntity, String
 
     boolean existsByIdAndTeacherId(String id, String teacherId);
 
-    Optional<List<ClassEntity>> findAllByTeacherId(String id);
+    List<ClassEntity> findAllByTeacherId(String id);
 }

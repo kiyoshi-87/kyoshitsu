@@ -5,7 +5,7 @@ spring:
     name: kyoshitsu
   data:
     mongodb:
-      uri: mongodb://admin:admin@mongo:27017/kyoshitsu_db
+      uri: mongodb://${MONGODB_USER}:${MONGODB_PASS}@mongo:27017/kyoshitsu_db
 
 app:
   cors:

@@ -137,8 +137,7 @@ public class ClassroomService {
             throw new ApiException("You are not authorized to view this list");
         }
 
-        List<ClassEntity> classes = repository.findAllByTeacherId(user.getId())
-                .orElse(null);
+        List<ClassEntity> classes = repository.findAllByTeacherId(user.getId());
 
         if (CollectionUtils.isEmpty(classes)) {
             return ApiResponseEntity.success(List.of());
@@ -221,7 +220,7 @@ public class ClassroomService {
                     .classId(classEntity.getId())
                     .className(classEntity.getName())
                     .teacherId(classEntity.getTeacherId())
-                    .studentIds(classEntity.getStudentIds())
+                    .studentIds(classEntity.getStudentIds() == null ? List.of() : classEntity.getStudentIds())
                     .build();
             classResponses.add(response);
         }
