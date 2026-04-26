@@ -92,6 +92,18 @@ mvn spring-boot:run
 
 By default, the application uses the MongoDB connection configured in `src/main/resources/application.yaml`.
 
+### Configure CORS Per Environment
+
+HTTP API CORS and WebSocket allowed origins are now driven by the same property.
+
+You can create a local `.env` file in the project root from `.env.example` and set:
+
+```properties
+APP_CORS_ALLOWED_ORIGIN_PATTERNS=http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173
+```
+
+For other environments, set `APP_CORS_ALLOWED_ORIGIN_PATTERNS` to the comma-separated origins you want to allow.
+
 ## Authentication
 
 Authentication is JWT-based for HTTP endpoints.

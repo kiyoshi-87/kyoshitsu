@@ -27,5 +27,5 @@ public class UserEntity implements Serializable {
     private String name;
     private String email;
     private String password;
-    private Role role; // ? No need of @Enumerated
+    private Role role;
 }

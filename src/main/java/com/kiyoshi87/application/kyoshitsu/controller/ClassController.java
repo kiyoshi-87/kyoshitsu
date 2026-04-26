@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/class")
@@ -83,5 +85,20 @@ public class ClassController {
             @Parameter(hidden = true) Authentication authentication
     ) {
         return service.getClassroom(id, authentication);
+    }
+
+    @Operation(summary = "Get my classes")
+    @ApiResponse(
+            responseCode = "200",
+            description = "List of classes owned by the authenticated teacher",
+            content = @Content(schema = @Schema(implementation = ApiResponseEntity.class))
+    )
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    @ApiResponse(responseCode = "403", description = "Teacher role required")
+    @GetMapping("/my-classes")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ApiResponseEntity<List<ClassResponse>> getMyClasses(
+            @Parameter(hidden = true) Authentication authentication) {
+        return service.getAllClassrooms(authentication);
     }
 }
